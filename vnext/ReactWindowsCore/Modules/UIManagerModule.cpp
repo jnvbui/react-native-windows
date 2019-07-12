@@ -290,23 +290,43 @@ void UIManager::createView(
   node->m_tag = tag;
   node->m_viewManager = viewManager;
 
+  if (node->m_className == "RCTRawText")
+    m_nodeRegistry.addRawTextProps(props, tag);
+
   node->createView();
   m_nativeUIManager->CreateView(*node, props);
 
   m_nodeRegistry.addNode(shadow_ptr(node), tag);
 
   if (!props.isNull())
-    node->updateProperties(std::move(props));
+    node->updateProperties(std::move(props));    
 }
 
 void UIManager::setChildren(int64_t viewTag, folly::dynamic &&childrenTags) {
   m_nativeUIManager->ensureInBatch();
   auto &parent = m_nodeRegistry.getNode(viewTag);
   int64_t index = 0;
+
   for (auto &&childTag : childrenTags) {
     auto tag = static_cast<int>(childTag.asDouble());
     auto &childNode = m_nodeRegistry.getNode(tag);
-    childNode.m_parent = parent.m_tag;
+    if (parent.m_className == "RCTText" &&
+        childNode.m_className == "RCTRawText") {
+      auto rawTextProps = m_nodeRegistry.getRawTextProps(tag);
+      if (childrenTags.size() == 1) {
+        parent.updateProperties(std::move(rawTextProps));
+        return;
+      }
+      if (childrenTags.size() > 1) {
+        childNode.createView();
+        m_nativeUIManager->CreateView(childNode, rawTextProps);
+
+        if (!rawTextProps.isNull())
+          childNode.updateProperties(std::move(rawTextProps));
+      }
+    }
+    childNode.m_parent = parent.m_tag;    
+
     parent.m_children.push_back(tag);
     if (!parent.m_zombie)
       parent.AddView(childNode, index);

@@ -26,7 +26,9 @@ struct ShadowNodeRegistry {
   void addNode(
       std::unique_ptr<ShadowNode, ShadowNodeDeleter> &&node,
       int64_t tag);
+  void addRawTextProps(folly::dynamic props, int64_t tag);
   ShadowNode &getNode(int64_t tag);
+  folly::dynamic getRawTextProps(int64_t tag);
   ShadowNode *findNode(int64_t tag);
   void removeNode(int64_t tag);
 
@@ -39,6 +41,7 @@ struct ShadowNodeRegistry {
  private:
   std::unordered_set<int64_t> m_roots;
   std::map<int64_t, std::unique_ptr<ShadowNode, ShadowNodeDeleter>> m_allNodes;
+  std::map<int64_t, folly::dynamic> m_RawTextProps;
 };
 
 } // namespace react

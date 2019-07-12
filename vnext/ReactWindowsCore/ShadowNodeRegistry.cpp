@@ -36,6 +36,13 @@ void ShadowNodeRegistry::addNode(
   m_allNodes[tag] = std::move(node);
 }
 
+
+void ShadowNodeRegistry::addRawTextProps(
+    folly::dynamic props,
+    int64_t tag) {
+  m_RawTextProps[tag] = props;
+}
+
 ShadowNode *ShadowNodeRegistry::findNode(int64_t tag) {
   auto iter = m_allNodes.find(tag);
   return (iter != m_allNodes.end()) ? iter->second.get() : nullptr;
@@ -43,6 +50,10 @@ ShadowNode *ShadowNodeRegistry::findNode(int64_t tag) {
 
 ShadowNode &ShadowNodeRegistry::getNode(int64_t tag) {
   return *m_allNodes.at(tag);
+}
+
+folly::dynamic ShadowNodeRegistry::getRawTextProps(int64_t tag) {
+  return m_RawTextProps.at(tag);
 }
 
 void ShadowNodeRegistry::removeNode(int64_t tag) {
