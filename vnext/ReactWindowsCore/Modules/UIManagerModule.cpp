@@ -311,22 +311,13 @@ void UIManager::setChildren(int64_t viewTag, folly::dynamic &&childrenTags) {
     auto tag = static_cast<int>(childTag.asDouble());
     auto &childNode = m_nodeRegistry.getNode(tag);
     if (parent.m_className == "RCTText" &&
-        childNode.m_className == "RCTRawText") {
+        childNode.m_className == "RCTRawText" && childrenTags.size() == 1) {
       auto rawTextProps = m_nodeRegistry.getRawTextProps(tag);
-      if (childrenTags.size() == 1) {
-        parent.updateProperties(std::move(rawTextProps));
-        return;
-      }
-      if (childrenTags.size() > 1) {
-        childNode.createView();
-        m_nativeUIManager->CreateView(childNode, rawTextProps);
-
-        if (!rawTextProps.isNull())
-          childNode.updateProperties(std::move(rawTextProps));
-      }
+      parent.updateProperties(std::move(rawTextProps));
+      return;
     }
-    childNode.m_parent = parent.m_tag;    
 
+    childNode.m_parent = parent.m_tag;    
     parent.m_children.push_back(tag);
     if (!parent.m_zombie)
       parent.AddView(childNode, index);
