@@ -7,6 +7,7 @@
 #include "CheckboxViewManager.h"
 
 #include <Utils/ValueUtils.h>
+#include <Utils/XamlDirect.h>
 
 #include <IReactInstance.h>
 
@@ -98,7 +99,9 @@ XamlView CheckBoxViewManager::CreateViewCore(int64_t tag) {
 void CheckBoxViewManager::UpdateProperties(
     ShadowNodeBase *nodeToUpdate,
     const folly::dynamic &reactDiffMap) {
-  auto checkbox = nodeToUpdate->GetView().as<winrt::CheckBox>();
+  const auto checkbox = GetXamlDirect().GetXamlDirectObject(
+      nodeToUpdate->GetView().as<winrt::CheckBox>());
+
   if (checkbox == nullptr)
     return;
 
@@ -108,14 +111,22 @@ void CheckBoxViewManager::UpdateProperties(
 
     if (propertyName == "disabled") {
       if (propertyValue.isBool())
-        checkbox.IsEnabled(!propertyValue.asBool());
+        GetXamlDirect().SetBooleanProperty(
+            checkbox,
+            XDPropertyIndex::Control_IsEnabled,
+            !propertyValue.asBool());
       else if (pair.second.isNull())
-        checkbox.ClearValue(winrt::Control::IsEnabledProperty());
+        GetXamlDirect().ClearProperty(
+            checkbox, XDPropertyIndex::Control_IsEnabled);
     } else if (propertyName == "checked") {
       if (propertyValue.isBool())
-        checkbox.IsChecked(propertyValue.asBool());
+        GetXamlDirect().SetBooleanProperty(
+            checkbox,
+            XDPropertyIndex::ToggleButton_IsChecked,
+            propertyValue.asBool());
       else if (pair.second.isNull())
-        checkbox.ClearValue(winrt::ToggleButton::IsCheckedProperty());
+        GetXamlDirect().ClearProperty(
+            checkbox, XDPropertyIndex::ToggleButton_IsChecked);
     }
   }
 

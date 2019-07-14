@@ -7,6 +7,7 @@
 #include "PickerViewManager.h"
 
 #include <Utils/ValueUtils.h>
+#include <Utils/XamlDirect.h>
 #include "unicode.h"
 
 #include <IReactInstance.h>
@@ -89,7 +90,8 @@ void PickerShadowNode::updateProperties(const folly::dynamic &&props) {
   m_updating = true;
 
   bool updateSelectedIndex = false;
-  auto combobox = GetView().as<winrt::ComboBox>();
+  const auto combobox =
+      GetXamlDirect().GetXamlDirectObject(GetView().as<winrt::ComboBox>());
   for (auto &pair : props.items()) {
     const std::string &propertyName = pair.first.getString();
     const folly::dynamic &propertyValue = pair.second;
@@ -97,20 +99,31 @@ void PickerShadowNode::updateProperties(const folly::dynamic &&props) {
     if (propertyName == "editable") {
       if (m_isEditableComboboxSupported) {
         if (propertyValue.isBool())
-          combobox.IsEditable(propertyValue.asBool());
+          GetXamlDirect().SetBooleanProperty(
+              combobox,
+              XDPropertyIndex::ComboBox_IsEditable,
+              propertyValue.asBool());
         else if (propertyValue.isNull())
-          combobox.ClearValue(winrt::ComboBox::IsEditableProperty());
+          GetXamlDirect().ClearProperty(
+              combobox, XDPropertyIndex::ComboBox_IsEditable);
       }
     } else if (propertyName == "text") {
       if (m_isEditableComboboxSupported) {
         if (propertyValue.isString())
-          combobox.Text(asHstring(propertyValue));
+          GetXamlDirect().SetStringProperty(
+              combobox,
+              XDPropertyIndex::ComboBox_Text,
+              asHstring(propertyValue));
         else if (propertyValue.isNull())
-          combobox.ClearValue(winrt::ComboBox::TextProperty());
+          GetXamlDirect().ClearProperty(
+              combobox, XDPropertyIndex::ComboBox_Text);
       }
     } else if (propertyName == "enabled") {
       if (propertyValue.isBool())
-        combobox.IsEnabled(propertyValue.asBool());
+        GetXamlDirect().SetBooleanProperty(
+            combobox,
+            XDPropertyIndex::Control_IsEnabled,
+            propertyValue.asBool());
     } else if (propertyName == "selectedIndex") {
       if (propertyValue.isNumber()) {
         auto selectedIndex = propertyValue.asDouble();
@@ -130,7 +143,8 @@ void PickerShadowNode::updateProperties(const folly::dynamic &&props) {
   // Update selectedIndex last, in case items and selectedIndex were both
   // changing
   if (updateSelectedIndex)
-    combobox.SelectedIndex(m_selectedIndex);
+    GetXamlDirect().SetInt32Property(
+        combobox, XDPropertyIndex::Selector_SelectedIndex, m_selectedIndex);
 
   Super::updateProperties(std::move(props));
   m_updating = false;

@@ -49,9 +49,8 @@ void RawTextViewManager::UpdateProperties(
     const std::string &propertyName = pair.first.getString();
     const folly::dynamic &propertyValue = pair.second;
 
-    if (propertyName == "text") {
+    if (propertyName == "text")
       run.Text(asHstring(propertyValue));
-    }
   }
   Super::UpdateProperties(nodeToUpdate, reactDiffMap);
 }

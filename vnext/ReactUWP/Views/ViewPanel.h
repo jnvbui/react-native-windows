@@ -8,6 +8,8 @@
 #include <winrt/Windows.UI.Xaml.Media.h>
 #include <winrt/Windows.UI.Xaml.h>
 
+#include <Utils/XamlDirect.h>
+
 #include "cppwinrt/ViewPanel.g.h"
 
 namespace winrt::react::uwp::implementation {
@@ -105,6 +107,7 @@ struct ViewPanel : ViewPanelT<ViewPanel> {
 
   // Child Elements
   winrt::Windows::UI::Xaml::Controls::Border m_border{nullptr};
+  winrt::Windows::Foundation::IInspectable m_border_xd;
   bool m_hasOuterBorder;
 
  private:

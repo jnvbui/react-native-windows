@@ -7,6 +7,8 @@
 
 #include <IXamlRootView.h>
 
+#include <Utils/XamlDirect.h>
+
 #include <winrt/Windows.UI.Xaml.Controls.h>
 
 namespace winrt {
@@ -33,22 +35,35 @@ XamlView RootViewManager::CreateViewCore(int64_t tag) {
 }
 
 void RootViewManager::AddView(XamlView parent, XamlView child, int64_t index) {
-  auto panel(parent.as<winrt::Panel>());
-  if (panel != nullptr)
-    panel.Children().InsertAt(
-        static_cast<uint32_t>(index), child.as<winrt::UIElement>());
+  auto panel = GetXamlDirect().GetXamlDirectObject(parent.as<winrt::Panel>());
+  if (panel != nullptr) {
+    auto children = GetXamlDirect().GetXamlDirectObjectProperty(
+        panel, XDPropertyIndex::Panel_Children);
+    auto childView =
+        GetXamlDirect().GetXamlDirectObject(child.as<winrt::UIElement>());
+    GetXamlDirect().InsertIntoCollectionAt(
+        children, static_cast<uint32_t>(index), childView);
+  }
 }
 
 void RootViewManager::RemoveAllChildren(XamlView parent) {
-  auto panel(parent.as<winrt::Panel>());
-  if (panel != nullptr)
-    panel.Children().Clear();
+  auto panel = GetXamlDirect().GetXamlDirectObject(parent.as<winrt::Panel>());
+  if (panel != nullptr) {
+    auto children = GetXamlDirect().GetXamlDirectObjectProperty(
+        panel, XDPropertyIndex::Panel_Children);
+    GetXamlDirect().ClearCollection(children);
+  }
 }
 
 void RootViewManager::RemoveChildAt(XamlView parent, int64_t index) {
-  auto panel(parent.as<winrt::Panel>());
-  if (panel != nullptr)
-    panel.Children().RemoveAt(static_cast<uint32_t>(index));
+  auto panel = GetXamlDirect().GetXamlDirectObject(parent.as<winrt::Panel>());
+
+  if (panel != nullptr) {
+    auto children = GetXamlDirect().GetXamlDirectObjectProperty(
+        panel, XDPropertyIndex::Panel_Children);
+    GetXamlDirect().RemoveFromCollectionAt(
+        children, static_cast<uint32_t>(index));
+  }
 }
 
 void RootViewManager::SetLayoutProps(

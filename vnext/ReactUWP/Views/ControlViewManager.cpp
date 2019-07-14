@@ -7,6 +7,7 @@
 #include <Views/ShadowNodeBase.h>
 
 #include <Utils/PropertyUtils.h>
+#include <Utils/XamlDirect.h>
 
 namespace react {
 namespace uwp {
@@ -29,6 +30,8 @@ void ControlViewManager::UpdateProperties(
   bool implementsPadding = nodeToUpdate->ImplementsPadding();
 
   if (control != nullptr) {
+    const auto controlXD = GetXamlDirect().GetXamlDirectObject(control);
+
     for (const auto &pair : reactDiffMap.items()) {
       const std::string &propertyName = pair.first.getString();
       const folly::dynamic &propertyValue = pair.second;
@@ -49,9 +52,13 @@ void ControlViewManager::UpdateProperties(
         if (propertyValue.isNumber()) {
           auto tabIndex = propertyValue.asDouble();
           if (tabIndex == static_cast<int32_t>(tabIndex))
-            control.TabIndex(static_cast<int32_t>(tabIndex));
+            GetXamlDirect().SetInt32Property(
+                controlXD,
+                XDPropertyIndex::Control_TabIndex,
+                static_cast<int32_t>(tabIndex));
         } else if (propertyValue.isNull()) {
-          control.ClearValue(winrt::Control::TabIndexProperty());
+          GetXamlDirect().ClearProperty(
+              controlXD, XDPropertyIndex::Control_TabIndex);
         }
       }
     }

@@ -10,6 +10,7 @@
 #include <Utils/PropertyHandlerUtils.h>
 #include <Utils/PropertyUtils.h>
 #include <Utils/ValueUtils.h>
+#include <Utils/XamlDirect.h>
 
 #include <IReactInstance.h>
 
@@ -234,6 +235,10 @@ void TextInputShadowNode::updateProperties(const folly::dynamic &&props) {
     return;
 
   auto control = textBox.as<winrt::Control>();
+
+  const auto textBoxXD = GetXamlDirect().GetXamlDirectObject(textBox);
+  const auto controlXD = GetXamlDirect().GetXamlDirectObject(control);
+
   for (auto &pair : props.items()) {
     const std::string &propertyName = pair.first.getString();
     const folly::dynamic &propertyValue = pair.second;
@@ -247,48 +252,74 @@ void TextInputShadowNode::updateProperties(const folly::dynamic &&props) {
       continue;
     } else if (propertyName == "multiline") {
       if (propertyValue.isBool())
-        textBox.TextWrapping(
-            propertyValue.asBool() ? winrt::TextWrapping::Wrap
-                                   : winrt::TextWrapping::NoWrap);
+        GetXamlDirect().SetEnumProperty(
+            textBoxXD,
+            XDPropertyIndex::TextBox_TextWrapping,
+            static_cast<uint32_t>(
+                propertyValue.asBool() ? winrt::TextWrapping::Wrap
+                                       : winrt::TextWrapping::NoWrap));
       else if (propertyValue.isNull())
-        textBox.ClearValue(winrt::TextBox::TextWrappingProperty());
+        GetXamlDirect().ClearProperty(
+            textBoxXD, XDPropertyIndex::TextBox_TextWrapping);
     } else if (propertyName == "allowFontScaling") {
       if (propertyValue.isBool())
-        textBox.IsTextScaleFactorEnabled(propertyValue.asBool());
+        GetXamlDirect().SetBooleanProperty(
+            textBoxXD,
+            XDPropertyIndex::Control_IsTextScaleFactorEnabled,
+            propertyValue.asBool());
       else if (propertyValue.isNull())
-        textBox.ClearValue(winrt::Control::IsTextScaleFactorEnabledProperty());
+        GetXamlDirect().ClearProperty(
+            textBoxXD, XDPropertyIndex::Control_IsTextScaleFactorEnabled);
     } else if (propertyName == "clearTextOnFocus") {
       if (propertyValue.isBool())
         m_shouldClearTextOnFocus = propertyValue.asBool();
     } else if (propertyName == "editable") {
       if (propertyValue.isBool())
-        textBox.IsReadOnly(!propertyValue.asBool());
+        GetXamlDirect().SetBooleanProperty(
+            textBoxXD,
+            XDPropertyIndex::TextBox_IsReadOnly,
+            !propertyValue.asBool());
       else if (propertyValue.isNull())
-        textBox.ClearValue(winrt::TextBox::IsReadOnlyProperty());
+        GetXamlDirect().ClearProperty(
+            textBoxXD, XDPropertyIndex::TextBox_IsReadOnly);
     } else if (propertyName == "maxLength") {
       if (propertyValue.isNumber())
-        textBox.MaxLength(static_cast<int32_t>(propertyValue.asDouble()));
+        GetXamlDirect().SetInt32Property(
+            textBoxXD,
+            XDPropertyIndex::TextBox_MaxLength,
+            static_cast<int32_t>(propertyValue.asDouble()));
       else if (propertyValue.isNull())
-        textBox.ClearValue(winrt::TextBox::MaxLengthProperty());
+        GetXamlDirect().ClearProperty(
+            textBoxXD, XDPropertyIndex::TextBox_MaxLength);
     } else if (propertyName == "placeholder") {
       if (propertyValue.isString())
-        textBox.PlaceholderText(asHstring(propertyValue));
+        GetXamlDirect().SetStringProperty(
+            textBoxXD,
+            XDPropertyIndex::TextBox_PlaceholderText,
+            asHstring(propertyValue));
       else if (propertyValue.isNull())
-        textBox.ClearValue(winrt::TextBox::PlaceholderTextProperty());
+        GetXamlDirect().ClearProperty(
+            textBoxXD, XDPropertyIndex::TextBox_PlaceholderText);
     } else if (propertyName == "placeholderTextColor") {
       if (textBox.try_as<winrt::ITextBlock6>()) {
         if (IsValidColorValue(propertyValue))
           textBox.PlaceholderForeground(SolidColorBrushFrom(propertyValue));
-        else if (propertyValue.isNull())
-          textBox.ClearValue(winrt::TextBox::PlaceholderForegroundProperty());
+        GetXamlDirect().ClearProperty(
+            textBoxXD, XDPropertyIndex::TextBox_PlaceholderForeground);
       }
     } else if (propertyName == "scrollEnabled") {
       if (propertyValue.isBool() &&
           textBox.TextWrapping() == winrt::TextWrapping::Wrap) {
         auto scrollMode = propertyValue.asBool() ? winrt::ScrollMode::Auto
                                                  : winrt::ScrollMode::Disabled;
-        winrt::ScrollViewer::SetVerticalScrollMode(textBox, scrollMode);
-        winrt::ScrollViewer::SetHorizontalScrollMode(textBox, scrollMode);
+        GetXamlDirect().SetEnumProperty(
+            textBoxXD,
+            XDPropertyIndex::ScrollViewer_VerticalScrollMode,
+            static_cast<uint32_t>(scrollMode));
+        GetXamlDirect().SetEnumProperty(
+            textBoxXD,
+            XDPropertyIndex::ScrollViewer_HorizontalScrollMode,
+            static_cast<uint32_t>(scrollMode));
       }
     } else if (propertyName == "selection") {
       if (propertyValue.isObject()) {
@@ -301,25 +332,33 @@ void TextInputShadowNode::updateProperties(const folly::dynamic &&props) {
       if (IsValidColorValue(propertyValue))
         textBox.SelectionHighlightColor(SolidColorBrushFrom(propertyValue));
       else if (propertyValue.isNull())
-        textBox.ClearValue(winrt::TextBox::SelectionHighlightColorProperty());
+        GetXamlDirect().ClearProperty(
+            textBoxXD, XDPropertyIndex::TextBox_SelectionHighlightColor);
     } else if (propertyName == "selectTextOnFocus") {
       if (propertyValue.isBool())
         m_shouldSelectTextOnFocus = propertyValue.asBool();
     } else if (propertyName == "spellCheck") {
       if (propertyValue.isBool())
-        textBox.IsSpellCheckEnabled(propertyValue.asBool());
+        GetXamlDirect().SetBooleanProperty(
+            textBoxXD,
+            XDPropertyIndex::TextBox_IsSpellCheckEnabled,
+            propertyValue.asBool());
       else if (propertyValue.isNull())
-        textBox.ClearValue(winrt::TextBox::IsSpellCheckEnabledProperty());
+        GetXamlDirect().ClearProperty(
+            textBoxXD, XDPropertyIndex::TextBox_IsSpellCheckEnabled);
     } else if (propertyName == "text") {
       if (m_mostRecentEventCount == m_nativeEventCount) {
         if (propertyValue.isString()) {
-          auto oldValue = textBox.Text();
+          auto oldValue = GetXamlDirect().GetStringProperty(
+              textBoxXD, XDPropertyIndex::TextBox_Text);
           auto newValue = asHstring(propertyValue);
           if (oldValue != newValue) {
-            textBox.Text(newValue);
+            GetXamlDirect().SetStringProperty(
+                textBoxXD, XDPropertyIndex::TextBox_Text, newValue);
           }
         } else if (propertyValue.isNull())
-          textBox.ClearValue(winrt::TextBox::TextProperty());
+          GetXamlDirect().ClearProperty(
+              textBoxXD, XDPropertyIndex::TextBox_Text);
       }
     } else if (propertyName == "mostRecentEventCount") {
       if (propertyValue.isNumber()) {

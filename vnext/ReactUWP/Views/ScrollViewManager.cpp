@@ -38,7 +38,8 @@ class ScrollViewShadowNode : public ShadowNodeBase {
   std::tuple<bool, T> getPropertyAndValidity(
       folly::dynamic propertyValue,
       T defaultValue);
-  void SetScrollMode(const winrt::ScrollViewer &scrollViewer);
+  void SetScrollMode(
+      const winrt::Windows::Foundation::IInspectable &scrollViewerXD);
 
   float m_zoomFactor{1.0f};
   bool m_isScrollingFromInertia = false;
@@ -136,7 +137,8 @@ void ScrollViewShadowNode::updateProperties(
   m_updating = true;
 
   const auto scrollViewer = GetView().as<winrt::ScrollViewer>();
-  if (scrollViewer == nullptr)
+  const auto scrollViewerXD = GetXamlDirect().GetXamlDirectObject(scrollViewer);
+  if (scrollViewerXD == nullptr)
     return;
 
   for (const auto &pair : reactDiffMap.items()) {
@@ -149,7 +151,7 @@ void ScrollViewShadowNode::updateProperties(
       if (valid) {
         m_isHorizontal = horizontal;
         ScrollViewUWPImplementation(scrollViewer).SetHorizontal(horizontal);
-        SetScrollMode(scrollViewer);
+        SetScrollMode(scrollViewerXD);
       }
     }
     if (propertyName == "scrollEnabled") {
@@ -157,36 +159,49 @@ void ScrollViewShadowNode::updateProperties(
           getPropertyAndValidity(propertyValue, true);
       if (valid) {
         m_isScrollingEnabled = scrollEnabled;
-        SetScrollMode(scrollViewer);
+        SetScrollMode(scrollViewerXD);
       }
     } else if (propertyName == "showsHorizontalScrollIndicator") {
       const auto [valid, showsHorizontalScrollIndicator] =
           getPropertyAndValidity(propertyValue, true);
       if (valid) {
-        scrollViewer.HorizontalScrollBarVisibility(
-            showsHorizontalScrollIndicator
-                ? winrt::ScrollBarVisibility::Visible
-                : winrt::ScrollBarVisibility::Hidden);
+        GetXamlDirect().SetEnumProperty(
+            scrollViewerXD,
+            XDPropertyIndex::ScrollViewer_HorizontalScrollBarVisibility,
+            static_cast<int32_t>(
+                showsHorizontalScrollIndicator
+                    ? winrt::ScrollBarVisibility::Visible
+                    : winrt::ScrollBarVisibility::Hidden));
       }
     } else if (propertyName == "showsVerticalScrollIndicator") {
       const auto [valid, showsVerticalScrollIndicator] =
           getPropertyAndValidity(propertyValue, true);
       if (valid) {
-        scrollViewer.VerticalScrollBarVisibility(
-            showsVerticalScrollIndicator ? winrt::ScrollBarVisibility::Visible
-                                         : winrt::ScrollBarVisibility::Hidden);
+        GetXamlDirect().SetEnumProperty(
+            scrollViewerXD,
+            XDPropertyIndex::ScrollViewer_VerticalScrollBarVisibility,
+            static_cast<INT32>(
+                showsVerticalScrollIndicator
+                    ? winrt::ScrollBarVisibility::Visible
+                    : winrt::ScrollBarVisibility::Hidden));
       }
     } else if (propertyName == "minimumZoomScale") {
       const auto [valid, minimumZoomScale] =
           getPropertyAndValidity(propertyValue, 1.0);
       if (valid) {
-        scrollViewer.MinZoomFactor(static_cast<float>(minimumZoomScale));
+        GetXamlDirect().SetDoubleProperty(
+            scrollViewerXD,
+            XDPropertyIndex::ScrollViewer_MinZoomFactor,
+            static_cast<float>(minimumZoomScale));
       }
     } else if (propertyName == "maximumZoomScale") {
       const auto [valid, maximumZoomScale] =
           getPropertyAndValidity(propertyValue, 1.0);
       if (valid) {
-        scrollViewer.MaxZoomFactor(static_cast<float>(maximumZoomScale));
+        GetXamlDirect().SetDoubleProperty(
+            scrollViewerXD,
+            XDPropertyIndex::ScrollViewer_MaxZoomFactor,
+            static_cast<float>(maximumZoomScale));
       }
     } else if (propertyName == "zoomScale") {
       const auto [valid, zoomScale] =
@@ -213,8 +228,15 @@ void ScrollViewShadowNode::updateProperties(
       const auto [valid, snapToAlignment] = getPropertyAndValidity(
           propertyValue, winrt::SnapPointsAlignment::Near);
       if (valid) {
-        scrollViewer.HorizontalSnapPointsAlignment(snapToAlignment);
-        scrollViewer.VerticalSnapPointsAlignment(snapToAlignment);
+        const auto snapToAlignmentInt32 = static_cast<int32_t>(snapToAlignment);
+        GetXamlDirect().SetEnumProperty(
+            scrollViewerXD,
+            XDPropertyIndex::ScrollViewer_HorizontalSnapPointsAlignment,
+            snapToAlignmentInt32);
+        GetXamlDirect().SetEnumProperty(
+            scrollViewerXD,
+            XDPropertyIndex::ScrollViewer_VerticalSnapPointsAlignment,
+            snapToAlignmentInt32);
       }
     }
   }
@@ -393,16 +415,22 @@ std::tuple<bool, T> ScrollViewShadowNode::getPropertyAndValidity(
 }
 
 void ScrollViewShadowNode::SetScrollMode(
-    const winrt::ScrollViewer &scrollViewer) {
+    const winrt::Windows::Foundation::IInspectable &scrollViewerXD) {
   const auto horizontalScrollingEnabled =
       m_isScrollingEnabled && m_isHorizontal;
   const auto verticalScrollingEnabled = m_isScrollingEnabled && !m_isHorizontal;
-  scrollViewer.HorizontalScrollMode(
-      horizontalScrollingEnabled ? winrt::ScrollMode::Auto
-                                 : winrt::ScrollMode::Disabled);
-  scrollViewer.VerticalScrollMode(
-      verticalScrollingEnabled ? winrt::ScrollMode::Auto
-                               : winrt::ScrollMode::Disabled);
+  GetXamlDirect().SetEnumProperty(
+      scrollViewerXD,
+      XDPropertyIndex::ScrollViewer_HorizontalScrollMode,
+      static_cast<int32_t>(
+          horizontalScrollingEnabled ? winrt::ScrollMode::Auto
+                                     : winrt::ScrollMode::Disabled));
+  GetXamlDirect().SetEnumProperty(
+      scrollViewerXD,
+      XDPropertyIndex::ScrollViewer_VerticalScrollMode,
+      static_cast<int32_t>(
+          verticalScrollingEnabled ? winrt::ScrollMode::Auto
+                                   : winrt::ScrollMode::Disabled));
 }
 
 ScrollViewManager::ScrollViewManager(

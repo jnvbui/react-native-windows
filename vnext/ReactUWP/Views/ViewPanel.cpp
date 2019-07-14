@@ -201,22 +201,27 @@ winrt::Size ViewPanel::ArrangeOverride(winrt::Size finalSize) {
 
 void ViewPanel::InsertAt(uint32_t const index, winrt::UIElement const &value)
     const {
-  Children().InsertAt(index, value);
+  const auto children = GetXamlDirect().GetXamlDirectObject(Children());
+  const auto valueXD = GetXamlDirect().GetXamlDirectObject(value);
+  GetXamlDirect().InsertIntoCollectionAt(children, index, valueXD);
 }
 
 void ViewPanel::RemoveAt(uint32_t const index) const {
-  Children().RemoveAt(index);
+  const auto children = GetXamlDirect().GetXamlDirectObject(Children());
+  GetXamlDirect().RemoveFromCollectionAt(children, index);
 }
 
 void ViewPanel::Remove(winrt::UIElement element) const {
   uint32_t index;
 
-  if (Children().IndexOf(element, index))
-    Children().RemoveAt(index);
+  const auto children = GetXamlDirect().GetXamlDirectObject(Children());
+  const auto elementXD = GetXamlDirect().GetXamlDirectObject(element);
+  GetXamlDirect().RemoveFromCollection(children, elementXD);
 }
 
 void ViewPanel::Clear() const {
-  Children().Clear();
+  const auto children = GetXamlDirect().GetXamlDirectObject(Children());
+  GetXamlDirect().ClearCollection(children);
 }
 
 void ViewPanel::ViewBackground(winrt::Brush const &value) {
@@ -290,30 +295,41 @@ void ViewPanel::FinalizeProperties() {
     // Ensure Border is created
     if (m_border == nullptr) {
       m_border = winrt::Border();
+      m_border_xd = GetXamlDirect().GetXamlDirectObject(m_border);
 
       // Add border as the top child if using as inner border
-      if (scenario == Scenario::InnerBorder)
-        Children().Append(m_border);
+      if (scenario == Scenario::InnerBorder) {
+        const auto children = GetXamlDirect().GetXamlDirectObject(Children());
+        GetXamlDirect().AddToCollection(children, m_border_xd);
+      }
     }
 
     // TODO: Can Binding be used here?
     if (hasBorderBrush)
       m_border.BorderBrush(BorderBrush());
     else
-      m_border.ClearValue(winrt::Border::BorderBrushProperty());
+      GetXamlDirect().ClearProperty(
+          m_border_xd, XDPropertyIndex::Border_BorderBrush);
 
     if (hasBorderThickness)
-      m_border.BorderThickness(BorderThickness());
+      GetXamlDirect().SetThicknessProperty(
+          m_border_xd,
+          XDPropertyIndex::Border_BorderThickness,
+          BorderThickness());
     else
-      m_border.ClearValue(winrt::Border::BorderThicknessProperty());
+      GetXamlDirect().ClearProperty(
+          m_border_xd, XDPropertyIndex::Border_BorderThickness);
 
     if (hasCornerRadius)
-      m_border.CornerRadius(CornerRadius());
+      GetXamlDirect().SetCornerRadiusProperty(
+          m_border_xd, XDPropertyIndex::Border_CornerRadius, CornerRadius());
     else
-      m_border.ClearValue(winrt::Border::CornerRadiusProperty());
+      GetXamlDirect().ClearProperty(
+          m_border_xd, XDPropertyIndex::Border_CornerRadius);
   } else if (m_border != nullptr) {
     // Remove the Border element
-    Remove(m_border);
+    const auto children = GetXamlDirect().GetXamlDirectObject(Children());
+    GetXamlDirect().RemoveFromCollection(children, m_border_xd);
     m_border = nullptr;
   }
 
@@ -321,7 +337,8 @@ void ViewPanel::FinalizeProperties() {
     if (hasBackground)
       m_border.Background(ViewBackground());
     else
-      m_border.ClearValue(winrt::Border::BackgroundProperty());
+      GetXamlDirect().ClearProperty(
+          m_border_xd, XDPropertyIndex::Border_Background);
 
     ClearValue(winrt::Panel::BackgroundProperty());
   } else {
