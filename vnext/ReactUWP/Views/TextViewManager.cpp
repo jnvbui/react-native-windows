@@ -59,7 +59,7 @@ void TextViewManager::UpdateProperties(
     const std::string &propertyName = pair.first.getString();
     const folly::dynamic &propertyValue = pair.second;
 
-     if (propertyName == "text") {
+    if (propertyName == "text") {
       textBlock.Text(asHstring(propertyValue));
     }
 
@@ -116,23 +116,6 @@ void TextViewManager::UpdateProperties(
 }
 
 void TextViewManager::AddView(XamlView parent, XamlView child, int64_t index) {
-  /*auto textBlock(parent.as<winrt::TextBlock>());
- 
-  if (index == 0) {
-    auto c = child.try_as<winrt::Run>();
-    if (c != nullptr)
-      textBlock.Text(c.Text());
-  }
-  else {
-    if (index == 1) {
-      auto firstChildRun = winrt::Run();
-      firstChildRun.Text(textBlock.Text());
-      textBlock.Inlines().InsertAt(0, firstChildRun.as<winrt::Inline>());
-    }
-    auto childInline(child.as<winrt::Inline>());
-    
-    textBlock.Inlines().InsertAt(static_cast<uint32_t>(index), childInline);
-  }*/
   auto textBlock(parent.as<winrt::TextBlock>());
   auto childInline(child.as<winrt::Inline>());
   textBlock.Inlines().InsertAt(static_cast<uint32_t>(index), childInline);
