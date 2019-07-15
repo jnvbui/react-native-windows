@@ -116,7 +116,7 @@ void TextViewManager::UpdateProperties(
 }
 
 void TextViewManager::AddView(XamlView parent, XamlView child, int64_t index) {
-  auto textBlock(parent.as<winrt::TextBlock>());
+  /*auto textBlock(parent.as<winrt::TextBlock>());
  
   if (index == 0) {
     auto c = child.try_as<winrt::Run>();
@@ -132,7 +132,10 @@ void TextViewManager::AddView(XamlView parent, XamlView child, int64_t index) {
     auto childInline(child.as<winrt::Inline>());
     
     textBlock.Inlines().InsertAt(static_cast<uint32_t>(index), childInline);
-  }
+  }*/
+  auto textBlock(parent.as<winrt::TextBlock>());
+  auto childInline(child.as<winrt::Inline>());
+  textBlock.Inlines().InsertAt(static_cast<uint32_t>(index), childInline);
 }
 
 void TextViewManager::RemoveAllChildren(XamlView parent) {

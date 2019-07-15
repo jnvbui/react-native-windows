@@ -299,7 +299,7 @@ void UIManager::createView(
   m_nodeRegistry.addNode(shadow_ptr(node), tag);
 
   if (!props.isNull())
-    node->updateProperties(std::move(props));    
+    node->updateProperties(std::move(props));
 }
 
 void UIManager::setChildren(int64_t viewTag, folly::dynamic &&childrenTags) {
