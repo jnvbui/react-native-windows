@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "make webviewmanage run on separate process",
+  "packageName": "react-native-windows",
+  "email": "ngbu@microsoft.com",
+  "commit": "178312667b864d9ab83461112bffa5b1afe4a602",
+  "date": "2019-09-27T21:36:09.861Z"
+}
